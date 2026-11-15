@@ -1,11 +1,34 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { events } from '../../src/data/events';
+import { useEvents } from '../../src/hooks/useEvents';
 
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const event = events.find((item) => item.id === Number(id));
+  const { data, isPending, isError, error, refetch } = useEvents();
+
+  if (isPending) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.stateText}>Loading events</Text>
+      </View>
+    );
+  }
+
+  if (isError) {
+    return (
+      <View style={styles.centerContainer}>
+        <Text style={styles.errorTitle}>Could not load events</Text>
+        <Text style={styles.errorMessage}>{error?.message}</Text>
+        <Pressable onPress={() => refetch()} style={styles.tryAgainButton}>
+          <Text style={styles.tryAgainButtonText}>Try again</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  const event = data?.find((item) => item.id === Number(id));
 
   if (!event) {
     return (
@@ -36,6 +59,45 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#ffffff',
     padding: 24,
+  },
+  centerContainer: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    gap: 12,
+  },
+  stateText: {
+    fontSize: 16,
+    color: '#64748b',
+    marginTop: 8,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#ef4444',
+    textAlign: 'center',
+  },
+  errorMessage: {
+    fontSize: 15,
+    color: '#64748b',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  tryAgainButton: {
+    minHeight: 44,
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tryAgainButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   card: {
     backgroundColor: '#f8fafc',

@@ -1,13 +1,44 @@
 import React, { useState } from 'react';
-import { FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { router } from 'expo-router';
-import { events } from '../../src/data/events';
+import { useEvents } from '../../src/hooks/useEvents';
 import { EventRow } from '../../src/components/EventRow';
 
 export default function EventsScreen() {
+  const { data, isPending, isError, error, refetch, isRefetching } = useEvents();
   const [savedIds, setSavedIds] = useState<number[]>([]);
   const [search, setSearch] = useState('');
 
+  if (isPending) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.stateText}>Loading events</Text>
+      </View>
+    );
+  }
+
+  if (isError) {
+    return (
+      <View style={styles.centerContainer}>
+        <Text style={styles.errorTitle}>Could not load events</Text>
+        <Text style={styles.errorMessage}>{error?.message}</Text>
+        <Pressable onPress={() => refetch()} style={styles.tryAgainButton}>
+          <Text style={styles.tryAgainButtonText}>Try again</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  const events = data ?? [];
   const filteredEvents = events.filter((event) =>
     event.title.toLowerCase().includes(search.toLowerCase())
   );
@@ -41,6 +72,8 @@ export default function EventsScreen() {
             onLongPress={() => handleLongPress(item.id)}
           />
         )}
+        refreshing={isRefetching}
+        onRefresh={() => refetch()}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>No events match</Text>
@@ -58,6 +91,45 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8fafc',
+  },
+  centerContainer: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    gap: 12,
+  },
+  stateText: {
+    fontSize: 16,
+    color: '#64748b',
+    marginTop: 8,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#ef4444',
+    textAlign: 'center',
+  },
+  errorMessage: {
+    fontSize: 15,
+    color: '#64748b',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  tryAgainButton: {
+    minHeight: 44,
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tryAgainButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   searchInput: {
     height: 44,
