@@ -2,6 +2,7 @@ import React from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useEvents } from '../../src/hooks/useEvents';
+import { HolidayNote } from '../../src/components/HolidayNote';
 
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -48,6 +49,7 @@ export default function EventDetailScreen() {
         <Text style={styles.details}>
           {event.date} · {event.place}
         </Text>
+        <HolidayNote date={event.date} />
         <Text style={styles.seats}>Seats: {event.seats}</Text>
       </View>
     </View>
@@ -115,12 +117,13 @@ const styles = StyleSheet.create({
   details: {
     fontSize: 16,
     color: '#475569',
-    marginBottom: 12,
+    marginBottom: 4,
   },
   seats: {
     fontSize: 16,
     color: '#2563eb',
     fontWeight: '600',
+    marginTop: 12,
   },
   notFoundMessage: {
     fontSize: 16,
